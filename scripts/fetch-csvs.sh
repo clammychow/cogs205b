@@ -16,3 +16,8 @@ echo "extracting csvs"
 for file in /tmp/extract/*.csv; do
     mv "$file" "./data/$curr_date"
 done
+
+# clears temp directory and wget file
+rm -r /tmp/extract
+rm data.zip
+echo "done"
