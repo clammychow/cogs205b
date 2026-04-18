@@ -1,7 +1,12 @@
 import scipy.stats
 
 class SignalDetection:
-    def __init__(hits, misses, false_alarms, correct_rejections):
+    def __init__(self, hits, misses, false_alarms, correct_rejections):
+        for i in (hits, misses, false_alarms, correct_rejections):
+            if not isinstance(i, int) or isinstance(i, bool):
+                raise TypeError("Inputs must be integers")
+            elif i < 0:
+                raise ValueError("Inputs cannot be negative")
         self.hits = hits
         self.misses = misses
         self.false_alarms = false_alarms
