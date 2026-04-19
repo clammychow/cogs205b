@@ -1,11 +1,12 @@
 import scipy.stats
+import matplotlib.pyplot as plt
 
 class SignalDetection:
     def __init__(self, hits, misses, false_alarms, correct_rejections):
-        for i in (hits, misses, false_alarms, correct_rejections):
-            if not isinstance(i, int) or isinstance(i, bool):
+        for count in (hits, misses, false_alarms, correct_rejections):
+            if not isinstance(count, int) or isinstance(count, bool):
                 raise TypeError("Outcome counts must be integers")
-            elif i < 0:
+            elif count < 0:
                 raise ValueError("Outcome counts cannot be negative")
         self.hits = hits
         self.misses = misses
@@ -29,7 +30,7 @@ class SignalDetection:
     # operator overloading
     def __add__(self, other):
         if not isinstance(other, SignalDetection):
-            raise TypeError("Both objects must be of the SignalDetection class")
+            raise TypeError("All objects must be of the SignalDetection class")
         return SignalDetection(self.hits + other.hits, 
         self.misses + other.misses,
         self.false_alarms + other.false_alarms, 
@@ -37,7 +38,7 @@ class SignalDetection:
 
     def __sub__(self, other):
         if not isinstance(other, SignalDetection):
-            raise TypeError("Both objects must be of the SignalDetection class")
+            raise TypeError("All objects must be of the SignalDetection class")
         return SignalDetection(self.hits - other.hits, 
         self.misses - other.misses,
         self.false_alarms - other.false_alarms, 
@@ -50,3 +51,25 @@ class SignalDetection:
         self.misses * factor,
         self.false_alarms * factor,
         self.correct_rejections * factor)
+
+    # ROC plot
+    @staticmethod
+    def plot_roc(sdt_list):
+        # creates lists of x and y values using sdt rates
+        hr_list = []
+        far_list = []
+        for sdt in sdt_list:
+            hr_list.append(sdt.hit_rate())
+            far_list.append(sdt.false_alarm_rate())
+        # Adds endpoints and orders by hit rate
+        hr_list.extend([0, 1])
+        far_list.extend([0, 1])
+        sorted_points = sorted(zip(hr_list, far_list))
+        hr_list, far_list = zip(*sorted_points)
+        # creates and returns figure w/ hit rate on horizontal
+        fig, ax = plt.subplots()
+        ax.plot(hr_list, far_list)
+        ax.set_title("Receiver Operating Characteristics Curve")
+        ax.set_xlabel("Hit Rates")
+        ax.set_ylabel("False Alarm Rates")
+        return fig, ax
