@@ -14,13 +14,17 @@ class SignalDetection:
 
     # core methods
     def hit_rate(self):
+        if self.hits + self.misses == 0:
+            raise ValueError("Hit Rate undefined: hits and misses add to 0")
         return self.hits / (self.hits + self.misses)
     def false_alarm_rate(self):
+        if self.false_alarms + self.correct_rejections == 0:
+            raise ValueError("False Alarm Rate undefined: false alarms and correct rejections add to 0")
         return self.false_alarms / (self.false_alarms + self.correct_rejections)
     def d_prime(self):
-        return scipy.stats.norm.ppf(self.hit_rate) - scipy.stats.norm.ppf(self.false_alarm_rate)
+        return scipy.stats.norm.ppf(self.hit_rate()) - scipy.stats.norm.ppf(self.false_alarm_rate())
     def criterion(self):
-        return -0.5 * (scipy.stats.norm.ppf(self.hit_rate) + scipy.stats.norm.ppf(self.false_alarm_rate))
+        return -0.5 * (scipy.stats.norm.ppf(self.hit_rate()) + scipy.stats.norm.ppf(self.false_alarm_rate()))
     
     # operator overloading
     def __add__(self, other):
@@ -46,4 +50,3 @@ class SignalDetection:
         self.misses * factor,
         self.false_alarms * factor,
         self.correct_rejections * factor)
-        
