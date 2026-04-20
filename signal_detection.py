@@ -18,12 +18,15 @@ class SignalDetection:
         if self.hits + self.misses == 0:
             raise ValueError("Hit Rate undefined: hits and misses add to 0")
         return self.hits / (self.hits + self.misses)
+
     def false_alarm_rate(self):
         if self.false_alarms + self.correct_rejections == 0:
             raise ValueError("False Alarm Rate undefined: false alarms and correct rejections add to 0")
         return self.false_alarms / (self.false_alarms + self.correct_rejections)
+
     def d_prime(self):
         return scipy.stats.norm.ppf(self.hit_rate()) - scipy.stats.norm.ppf(self.false_alarm_rate())
+
     def criterion(self):
         return -0.5 * (scipy.stats.norm.ppf(self.hit_rate()) + scipy.stats.norm.ppf(self.false_alarm_rate()))
     
@@ -37,6 +40,7 @@ class SignalDetection:
         self.correct_rejections + other.correct_rejections)
 
     def __sub__(self, other):
+        # negative results handled by ValueError in __init__
         if not isinstance(other, SignalDetection):
             raise TypeError("All objects must be of the SignalDetection class")
         return SignalDetection(self.hits - other.hits, 
@@ -61,12 +65,14 @@ class SignalDetection:
         for sdt in sdt_list:
             hr_list.append(sdt.hit_rate())
             far_list.append(sdt.false_alarm_rate())
+
         # Adds endpoints and orders by hit rate
-        hr_list.extend([0, 1])
-        far_list.extend([0, 1])
-        sorted_points = sorted(zip(hr_list, far_list))
+        roc_points = list(zip(hr_list, far_list))
+        roc_points.extend([(0, 0), (1, 1)])
+        sorted_points = sorted(roc_points)
         hr_list, far_list = zip(*sorted_points)
-        # creates and returns figure w/ hit rate on horizontal
+
+        # creates and returns figure with hit rate on horizontal axis
         fig, ax = plt.subplots()
         ax.plot(hr_list, far_list)
         ax.set_title("Receiver Operating Characteristics Curve")
