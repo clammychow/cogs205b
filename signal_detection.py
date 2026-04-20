@@ -59,6 +59,12 @@ class SignalDetection:
     # ROC plot
     @staticmethod
     def plot_roc(sdt_list):
+        if not isinstance(sdt_list, list):
+            raise TypeError("Enter a list of SignalDetection objects")
+        for sdt in sdt_list:
+            if not isinstance(sdt, SignalDetection):
+                raise TypeError("Cannot plot non-SignalDetection objects")
+
         # creates lists of x and y values using sdt rates
         hr_list = []
         far_list = []
