@@ -25,6 +25,7 @@ class SignalDetection:
         return self.false_alarms / (self.false_alarms + self.correct_rejections)
 
     def d_prime(self):
+        # no log-linear correction applied; hit/false alarm rates of 0 or 1 yield +/-inf values
         return scipy.stats.norm.ppf(self.hit_rate()) - scipy.stats.norm.ppf(self.false_alarm_rate())
 
     def criterion(self):
@@ -40,7 +41,7 @@ class SignalDetection:
         self.correct_rejections + other.correct_rejections)
 
     def __sub__(self, other):
-        # negative results handled by ValueError in __init__
+        # negative results rejected by ValueError in __init__
         if not isinstance(other, SignalDetection):
             raise TypeError("All objects must be of the SignalDetection class")
         return SignalDetection(self.hits - other.hits, 
@@ -72,7 +73,7 @@ class SignalDetection:
             hr_list.append(sdt.hit_rate())
             far_list.append(sdt.false_alarm_rate())
 
-        # Adds endpoints and orders by hit rate
+        # pairs x and y values, adds endpoints, and orders by hit rate
         roc_points = list(zip(hr_list, far_list))
         roc_points.extend([(0, 0), (1, 1)])
         sorted_points = sorted(roc_points)
@@ -80,8 +81,17 @@ class SignalDetection:
 
         # creates and returns figure with hit rate on horizontal axis
         fig, ax = plt.subplots()
-        ax.plot(hr_list, far_list)
-        ax.set_title("Receiver Operating Characteristics Curve")
+        ax.plot(hr_list, far_list, marker = "o")
+        ax.set_title("Receiver Operating Characteristic Curve")
         ax.set_xlabel("Hit Rates")
         ax.set_ylabel("False Alarm Rates")
         return fig, ax
+
+
+# code used to create example ROC plot with hypothetical data; figure saved in repo
+# sdt1 = SignalDetection(10, 20, 2, 28)
+# sdt2 = SignalDetection(22, 8, 8, 22)
+# sdt3 = SignalDetection(28, 2, 20, 10)
+# sdtList = [sdt1, sdt2, sdt3]
+# SignalDetection.plot_roc(sdtList)
+# plt.savefig("Example_ROC_fig.png")
