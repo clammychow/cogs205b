@@ -7,7 +7,7 @@ class TestSignalDetection(unittest.TestCase):
         self.sdt_test2 = SignalDetection(0, 0, 0, 0)
         self.sdt_test3 = SignalDetection(2, 2, 2, 2)
 
-    # normal cases
+    # Part 1 - core math tests
     def test_hit_rate(self):
         self.assertEqual(self.sdt_test1.hit_rate(), 0.5)
     
@@ -20,28 +20,27 @@ class TestSignalDetection(unittest.TestCase):
     def test_criterion(self):
         self.assertEqual(self.sdt_test1.criterion(), 0)
 
-    # edge cases: 0 counts
-    def test_hit_rate_edge_case(self):
+    # Part 2 - input validation and edge cases
+    def test_hit_rate_0_counts(self):
         with self.assertRaises(ValueError) as exception_context:
             self.sdt_test2.hit_rate()
         self.assertEqual(str(exception_context.exception),
             "Hit Rate undefined: hits and misses add to 0")
     
-    def test_false_alarm_rate_edge_case(self):
+    def test_false_alarm_rate_0_counts(self):
         with self.assertRaises(ValueError) as exception_context:
             self.sdt_test2.false_alarm_rate()
         self.assertEqual(str(exception_context.exception),
             "False Alarm Rate undefined: false alarms and correct rejections add to 0")
 
-    def test_d_prime_edge_case(self):
+    def test_d_prime_0_counts(self):
         with self.assertRaises(ValueError):
             self.sdt_test2.d_prime()
 
-    def test_criterion_edge_case(self):
+    def test_criterion_0_counts(self):
         with self.assertRaises(ValueError):
             self.sdt_test2.criterion()
 
-    # invalid constructor values
     def test_negative_counts(self):
         with self.assertRaises(ValueError) as exception_context:
             sdt_testNeg = SignalDetection(-1, 2, 3, 4)
@@ -54,7 +53,6 @@ class TestSignalDetection(unittest.TestCase):
         self.assertEqual(str(exception_context.exception),
             "Outcome counts must be integers")
 
-    # operator arguments
     def test_add_error(self):
         with self.assertRaises(TypeError) as exception_context:
             self.sdt_test1 + 7
@@ -81,7 +79,7 @@ class TestSignalDetection(unittest.TestCase):
         self.assertEqual(str(exception_context.exception),
             "Outcome counts cannot be negative")
 
-    # operator values
+    # Part 3 - operators
     def test_add(self):
         sdt_testAdd = self.sdt_test1 + self.sdt_test2
         # check for mutation
@@ -129,7 +127,7 @@ class TestSignalDetection(unittest.TestCase):
         self.assertEqual(sdt_testMul.false_alarms, 2)
         self.assertEqual(sdt_testMul.correct_rejections, 2)
 
-    # ROC Plot
+    # Part 4 - ROC Plot
     def test_ROC_handles_sequence(self):
         import matplotlib.figure
         sdt_list = [self.sdt_test1, self.sdt_test3]
