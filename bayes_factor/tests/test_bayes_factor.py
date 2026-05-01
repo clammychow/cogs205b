@@ -9,6 +9,9 @@ class TestBayesFactor(unittest.TestCase):
     def test_likelihood(self):
         self.assertAlmostEqual(self.bf_1.likelihood(0.5), 0.5)
 
+    def test_evidence_slab(self):
+        self.assertAlmostEqual(self.bf_1.evidence_slab(), 1/3)
+
     # input validation/edge cases
     def test_likelihood_thetaError(self):
         with self.assertRaises(TypeError) as exception_context:

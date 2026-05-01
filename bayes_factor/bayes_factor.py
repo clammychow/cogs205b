@@ -1,4 +1,5 @@
 import scipy.stats
+import scipy.integrate
 
 class BayesFactor:
     def __init__(self, n, k):
@@ -12,7 +13,9 @@ class BayesFactor:
             raise ValueError("Theta must be within the range [0, 1]")
         return scipy.stats.binom.pmf(self.k, self.n, theta)
 
-    #def evidence_slab(self):
+    def evidence_slab(self):
+        integral, error = scipy.integrate.quad(self.likelihood, 0, 1)
+        return integral
 
     #def evidence_spike(self):
 
