@@ -24,4 +24,7 @@ class BayesFactor:
         integral, error = scipy.integrate.quad(function, a, b)
         return integral
 
-    #def bayes_factor(self):
+    def bayes_factor(self):
+        if self.evidence_slab() == 0:
+            raise ValueError("Bayes Factor undefined; slab evidence = 0")
+        return self.evidence_spike() / self.evidence_slab()
