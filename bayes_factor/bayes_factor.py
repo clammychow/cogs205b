@@ -17,6 +17,11 @@ class BayesFactor:
         integral, error = scipy.integrate.quad(self.likelihood, 0, 1)
         return integral
 
-    #def evidence_spike(self):
+    def evidence_spike(self):
+        a = 0.4999
+        b = 0.5001
+        function = lambda theta: self.likelihood(theta) * 1/(b - a)
+        integral, error = scipy.integrate.quad(function, a, b)
+        return integral
 
     #def bayes_factor(self):
