@@ -3,6 +3,14 @@ import scipy.integrate
 
 class BayesFactor:
     def __init__(self, n, k):
+        if not isinstance(n, int) or isinstance(n, bool):
+            raise TypeError("n must be an integer")
+        elif not isinstance(k, int) or isinstance(k, bool):
+            raise TypeError("k must be an integer")
+        elif k < 0 or n < 0:
+            raise ValueError("Inputs cannot be negative")
+        elif k > n:
+            raise ValueError("k cannot be larger than n [Double check input order: BayesFactor(n, k)]")
         self.n = n
         self.k = k
     
@@ -26,5 +34,5 @@ class BayesFactor:
 
     def bayes_factor(self):
         if self.evidence_slab() == 0:
-            raise ValueError("Bayes Factor undefined; slab evidence = 0")
+            raise ValueError("Bayes Factor undefined; slab evidence ≈ 0")
         return self.evidence_spike() / self.evidence_slab()

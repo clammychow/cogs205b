@@ -7,6 +7,27 @@ class TestBayesFactor(unittest.TestCase):
         self.bf_success = BayesFactor(3, 3)
         self.bf_fail = BayesFactor(3, 0)
         self.bf_big_n = BayesFactor(1000000, 0)
+
+    # constructor validation
+    def test_input_type_validation(self):
+        with self.assertRaises(TypeError) as exception_context:
+            bf_str_n = BayesFactor("n", "k")
+        self.assertEqual(str(exception_context.exception),
+            "n must be an integer")
+        with self.assertRaises(TypeError) as exception_context:
+            bf_str_k = BayesFactor(7, "k")
+        self.assertEqual(str(exception_context.exception), 
+            "k must be an integer")
+    
+    def test_input_range_validation(self):
+        with self.assertRaises(ValueError) as exception_context:
+            bf_negatives = BayesFactor(1, -4)
+        self.assertEqual(str(exception_context.exception),
+            "Inputs cannot be negative")
+        with self.assertRaises(ValueError) as exception_context:
+            bf_big_k = BayesFactor(5, 10)
+        self.assertEqual(str(exception_context.exception), 
+            "k cannot be larger than n [Double check input order: BayesFactor(n, k)]")
     
     # core methods
     def test_likelihood(self):
@@ -36,7 +57,7 @@ class TestBayesFactor(unittest.TestCase):
         with self.assertRaises(ValueError) as exception_context:
             self.bf_big_n.bayes_factor()
         self.assertEqual(str(exception_context.exception),
-            "Bayes Factor undefined; slab evidence = 0")
+            "Bayes Factor undefined; slab evidence ≈ 0")
         
 if __name__ == '__main__':
     unittest.main()
