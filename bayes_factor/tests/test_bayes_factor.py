@@ -9,6 +9,10 @@ class TestBayesFactor(unittest.TestCase):
         self.bf_big_n = BayesFactor(1000000, 0)
 
     # Input and state validation
+    def test_initialization(self):
+        self.assertEqual(self.bf_chance.n, 2)
+        self.assertEqual(self.bf_chance.k, 1)
+
     def test_input_type_validation(self):
         with self.assertRaises(TypeError) as exception_context:
             bf_float_n = BayesFactor(1.2, 7)

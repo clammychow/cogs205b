@@ -7,17 +7,17 @@ class BayesFactor:
             raise TypeError("n must be an integer")
         elif not isinstance(k, int) or isinstance(k, bool):
             raise TypeError("k must be an integer")
-        elif k < 0 or n < 0:
-            raise ValueError("Inputs cannot be negative")
+        elif n < 0 or k < 0:
+            raise ValueError("n and k cannot be negative")
         elif k > n:
-            raise ValueError("k cannot be larger than n [Double check input order: BayesFactor(n, k)]")
+            raise ValueError("k cannot be larger than n")
         self.n = n
         self.k = k
     
     def likelihood(self, theta):
         if not isinstance(theta, (float, int)) or isinstance(theta, bool):
             raise TypeError("Theta must be an integer or float")
-        elif not 0 <= theta and theta <= 1:
+        elif not 0 <= theta or not theta <= 1:
             raise ValueError("Theta must be within the range [0, 1]")
         return scipy.stats.binom.pmf(self.k, self.n, theta)
 
