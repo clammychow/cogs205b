@@ -109,10 +109,13 @@ class TestBayesFactor(unittest.TestCase):
     def test_evidence_nonnegative(self):
         self.assertGreaterEqual(self.bf_chance.evidence_slab(), 0)
         self.assertGreaterEqual(self.bf_chance.evidence_spike(), 0)
+    
+    def test_spike_dominates_chance_case(self):
+        self.assertGreater(self.bf_chance.evidence_spike(), self.bf_chance.evidence_slab())
 
     # intentionally failing test
     def test_spike_dominates_all_success_case(self):
-        self.assertTrue(self.bf_success.evidence_spike() > self.bf_success.evidence_slab())
+        self.assertGreater(self.bf_success.evidence_spike(), self.bf_success.evidence_slab())
         
 if __name__ == '__main__':
     unittest.main()
