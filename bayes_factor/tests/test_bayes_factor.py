@@ -113,7 +113,7 @@ class TestBayesFactor(unittest.TestCase):
     def test_spike_dominates_chance_case(self):
         self.assertGreater(self.bf_chance.evidence_spike(), self.bf_chance.evidence_slab())
 
-    # intentionally failing test
+    # intentionally failing test; spike should not dominate
     def test_spike_dominates_all_success_case(self):
         self.assertGreater(self.bf_success.evidence_spike(), self.bf_success.evidence_slab())
         
