@@ -5,4 +5,4 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 COPY . .
 ENV PYTHONPATH=/app
-CMD ["python3", "-m", "unittest", "tests/test_bayes_factor.py"]
+CMD ["python3", "-m", "unittest", "discover", "-s", "tests", "-p", "test_*.py"]
