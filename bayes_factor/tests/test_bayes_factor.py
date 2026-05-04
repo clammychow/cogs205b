@@ -4,8 +4,8 @@ from bayes_factor import BayesFactor
 class TestBayesFactor(unittest.TestCase):
     def setUp(self):
         self.bf_chance = BayesFactor(2, 1)
-        self.bf_success = BayesFactor(3, 3)
-        self.bf_fail = BayesFactor(3, 0)
+        self.bf_success = BayesFactor(2, 2)
+        self.bf_fail = BayesFactor(2, 0)
         self.bf_big_n = BayesFactor(1000000, 0)
         self.bf_zeros = BayesFactor(0, 0)
 
@@ -16,7 +16,7 @@ class TestBayesFactor(unittest.TestCase):
 
     def test_invalid_n_type(self):
         with self.assertRaises(TypeError) as exception_context:
-            bf_float_n = BayesFactor(7.2, 1)
+            bf_nonInt_n = BayesFactor(7.2, 1)
         self.assertEqual(str(exception_context.exception),
             "n must be an integer")
         with self.assertRaises(TypeError):
@@ -24,15 +24,15 @@ class TestBayesFactor(unittest.TestCase):
 
     def test_invalid_k_type(self):
         with self.assertRaises(TypeError) as exception_context:
-            bf_float_k = BayesFactor(7, 1.2)
+            bf_nonInt_k = BayesFactor(7, 1.2)
         self.assertEqual(str(exception_context.exception), 
             "k must be an integer")
         with self.assertRaises(TypeError):
-            bf_bool_k = BayesFactor(7, False)
+            bf_bool_k = BayesFactor(1, True)
     
     def test_invalid_n_range(self):
         with self.assertRaises(ValueError) as exception_context:
-            bf_negative_k = BayesFactor(-1, 7)
+            bf_negative_n = BayesFactor(-1, 7)
         self.assertEqual(str(exception_context.exception),
             "n and k cannot be negative")
     
@@ -42,15 +42,19 @@ class TestBayesFactor(unittest.TestCase):
         self.assertEqual(str(exception_context.exception),
             "n and k cannot be negative")
     
-    def test_n_larger_than_k(self):
+    def test_k_larger_than_n(self):
         with self.assertRaises(ValueError) as exception_context:
             bf_big_k = BayesFactor(5, 10)
         self.assertEqual(str(exception_context.exception), 
             "k cannot be larger than n")
     
     # API behavior and return contracts
-    def test_methods_callable(self):
-        self.assertIsCall
+    def test_methods_are_callable(self):
+        self.assertTrue(callable(self.bf_chance.likelihood))
+        self.assertTrue(callable(self.bf_chance.evidence_slab))
+        self.assertTrue(callable(self.bf_chance.evidence_spike))
+        self.assertTrue(callable(self.bf_chance.bayes_factor))
+
     def test_likelihood_output(self):
         self.assertAlmostEqual(self.bf_chance.likelihood(0.5), 0.5)
         self.assertIsInstance(self.bf_chance.likelihood(0.5), float)
@@ -67,12 +71,14 @@ class TestBayesFactor(unittest.TestCase):
         self.assertAlmostEqual(self.bf_chance.bayes_factor(), 3/2)
         self.assertIsInstance(self.bf_chance.bayes_factor(), float)
 
-    # method input validation/edge cases
+    # Method validation/edge cases
     def test_likelihood_theta_invalid_type(self):
         with self.assertRaises(TypeError) as exception_context:
             self.bf_chance.likelihood("0.5")
         self.assertEqual(str(exception_context.exception),
             "Theta must be an integer or float")
+        with self.assertRaises(TypeError):
+            self.bf_chance.likelihood(True)
 
     def test_likelihood_theta_invalid_range(self):
         with self.assertRaises(ValueError) as exception_context:
@@ -82,11 +88,11 @@ class TestBayesFactor(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.bf_chance.likelihood(1.1)
 
-    def test_likelihood_at_theta_extremes(self):
+    def test_likelihood_at_theta_boundaries(self):
         self.assertEqual(self.bf_fail.likelihood(0), 1)
         self.assertEqual(self.bf_success.likelihood(1), 1)
     
-    def test_impossible_likelihood_at_theta_extremes(self):
+    def test_impossible_likelihood_at_theta_boundaries(self):
         self.assertEqual(self.bf_success.likelihood(0), 0)
         self.assertEqual(self.bf_fail.likelihood(1), 0)
 
@@ -99,10 +105,14 @@ class TestBayesFactor(unittest.TestCase):
     def test_bayes_factor_same_prior(self):
         self.assertAlmostEqual(self.bf_zeros.evidence_spike(), self.bf_zeros.evidence_slab())
         self.assertAlmostEqual(self.bf_zeros.bayes_factor(), 1)
+    
+    def test_evidence_nonnegative(self):
+        self.assertGreaterEqual(self.bf_chance.evidence_slab(), 0)
+        self.assertGreaterEqual(self.bf_chance.evidence_spike(), 0)
 
     # intentionally failing test
-    def test_evidence_spike_bounds(self):
-        self.assertAlmostEqual(b - a, 0)
+    def test_spike_dominates_all_success_case(self):
+        self.assertTrue(self.bf_success.evidence_spike() > self.bf_success.evidence_slab())
         
 if __name__ == '__main__':
     unittest.main()
