@@ -7,7 +7,11 @@ Implements a "Bayes Factor" class and test suite that computes the likelihood, s
 
 ## Instructions
 ### Build Docker image:
+```
 docker build -t bayes-factor .
+```
 
 ### Run tests:
+```
 docker run --rm bayes-factor
+```
