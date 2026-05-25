@@ -1,7 +1,7 @@
 
 ################################## Comments on Model Output ##################################
 # I left the model's original implementation/commentary intact and added notes on some parts 
-# that could be refined.
+# I would refine.
 ##############################################################################################
 
 import math
@@ -40,8 +40,8 @@ class BayesFactor:
             return 0.0
 
     ################################## Comments on Model Output ##################################
-    # Model tries to silently handle overflow/underflow errors. Better to let it raise naturally
-    # or add an optional error message. A safer version:
+    # Model tries to silently handle overflow/underflow errors. It's probably better to add an
+    # error message or let them raise naturally in a safer version like this:
     #
     # def likelihood(self, theta):
     #    if not isinstance(theta, (int, float)) or isinstance(theta, bool):
@@ -79,7 +79,7 @@ class BayesFactor:
 
     ################################## Comments on Model Output ##################################
     # Model did not use all assigned variables and left in scratch code. A previous attempt 
-    # implemented this neater version:
+    # implemented a neater version similar to this:
     #
     # def evidence_spike(self):
     #    low = 0.43
@@ -120,13 +120,13 @@ class BayesFactor:
         return float(spike_ev / slab_ev)
 
     ################################## Comments on Model Output ##################################
-    # Model got confused by the check for tiny slab evidence. Earlier attempts implemented this
-    # more accurate version:
+    # Model got confused by the check for tiny slab evidence. Earlier attempts implemented more
+    # appropriate versions similar to this:
     #
     # def bayes_factor(self):
-    #    slab = self.evidence_slab()
-    #    spike = self.evidence_spike()
-    #    if slab < 1e-12:
+    #    slab_ev = self.evidence_slab()
+    #    spike_ev = self.evidence_spike()
+    #    if slab_ev < 1e-12:
     #        raise ValueError("Bayes Factor undefined; slab evidence ≈ 0")
-    #    return float(spike / slab)
+    #    return float(spike_ev / slab_ev)
     ##############################################################################################
