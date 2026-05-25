@@ -120,13 +120,13 @@ class BayesFactor:
         return float(spike_ev / slab_ev)
 
     ################################## Comments on Model Output ##################################
-    # Model got confused by the check for tiny slab evidence. Earlier attempts implemented more
-    # appropriate versions similar to this:
+    # Model got confused by the validation check for slab evidence approximating to 0 after 
+    # previous more reasonable attempts failed the unittest. A more appropriate version:
     #
     # def bayes_factor(self):
     #    slab_ev = self.evidence_slab()
     #    spike_ev = self.evidence_spike()
-    #    if slab_ev < 1e-12:
+    #    if slab_ev == 0:
     #        raise ValueError("Bayes Factor undefined; slab evidence ≈ 0")
     #    return float(spike_ev / slab_ev)
     ##############################################################################################
