@@ -6,7 +6,7 @@ from pathlib import Path
 import os
 import time
 
-# Allows running from this directory without installing the package.
+# Allows running from this directory without installing the package
 _FILES_DIR = Path(__file__).resolve().parent.parent
 if str(_FILES_DIR) not in sys.path:
     sys.path.insert(0, str(_FILES_DIR))
@@ -19,6 +19,7 @@ TEST_FILE = TEST_DIR / "test_bayes_factor.py"
 PROMPT_FILE = TASK_DIR / "task.txt"
 
 # Sets test_bayes_factor.py to read-only
+# Note this won't do anything if the agent can run as root
 TEST_FILE.chmod(0o444)
 
 # Modifiable parameters
