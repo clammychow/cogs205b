@@ -34,6 +34,7 @@ def run_tests() -> tuple[int, str]:
     )
     return result.returncode, (result.stdout + result.stderr).strip()
 
+# Key Setup: export GEMINI_API_KEY=...
 client = GeminiSimpleAPI(
     api_key_file=os.getenv("GEMINI_API_KEY"),
     model="gemma-4-31b-it",
@@ -60,7 +61,7 @@ for attempt in range(1, MAX_ATTEMPTS + 1):
             code, output = run_tests()
             print(f"Output: {output}")
 
-            # Archive the attempt
+            # Archives the attempt
             (TASK_DIR / f"attempt_{attempt}").mkdir(parents=True, exist_ok=True)
             (TASK_DIR / f"attempt_{attempt}" / "output.txt").write_text(output)
             (TASK_DIR / f"attempt_{attempt}" / "prompt.txt").write_text(prompt_text)
