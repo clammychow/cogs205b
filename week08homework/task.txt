@@ -1,0 +1,19 @@
+Respond ONLY with a valid JSON matching exactly this example format:
+{
+  "files": [
+    {
+    "name": "bayes_factor.py",
+    "relative_path": "bayes_factor.py",
+    "content": "import scipy.integrate\n\nclass BayesFactor..."
+    }
+  ],
+  "notes": "Used scipy.integrate.quad for slab and spike priors..."
+}
+No markdown. No code fences. No prose. No explanation. 
+Implement a class in Python called BayesFactor() that passes attached tests with these methods:
+- __init__(n, k) rejects impossible values for trials (n) and successes (k)
+- likelihood(theta) computes the likelihood of k successes out of n trials given some success probability theta
+- evidence_slab() computes the slab evidence for H₀: θ ∼ U(0, 1)
+- evidence_spike() computes the spike evidence for H₁: θ ∼ U(0.43, 0.57)
+- bayes_factor() computes spike evidence / slab evidence
+Do not modify the test file. Do not change the constructor signature.
