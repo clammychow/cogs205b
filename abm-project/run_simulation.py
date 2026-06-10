@@ -148,7 +148,7 @@ class ForagingABM:
         for agent, strategy in zip(self.agents, new_strategies):
             agent.strategy = strategy
 
-    # appends % risky at each new timestep to track trajectory
+    # appends % risky at each new timestep to track run trajectory
     def run(self, rng: np.random.Generator) -> np.ndarray:
         trajectory = [risky_pct(self.agents)]
         for _ in range(self.config.n_timesteps):
@@ -163,16 +163,6 @@ def risky_pct(agents: list[Agent]) -> float:
         raise ValueError("No agents in ring")
     n_risky = sum(1 for a in agents if a.strategy == "risky")
     return 100.0 * n_risky / len(agents)
-
-
-def risky_to_safe_ratio(agents: list[Agent]) -> float:
-    n_risky = sum(1 for a in agents if a.strategy == "risky")
-    n_safe = len(agents) - n_risky
-    if n_safe == 0:
-        return float("inf")
-    if n_risky == 0:
-        return 0.0
-    return n_risky / n_safe
 
 
 def n_risky_from_start_pct(start_pct: float, n_agents: int) -> int:
