@@ -40,9 +40,13 @@ class SimulationConfig:
             raise ValueError("n_timesteps must be positive")
         if self.beta < 0:
             raise ValueError("beta cannot be negative")
+        if copy_probability not in [None, 0, 1]:
+            raise ValueError("fixed copy_probability must be within [0, 1]")
         if self.n_risky is not None:
-            if self.n_risky > n_agents:
-                raise  ValueError("n_risky cannot be greater than n_agents")
+            if self.n_risky < 0:
+                raise ValueError("n_risky cannot be negative")
+            if self.n_risky > self.n_agents:
+                raise ValueError("n_risky cannot be greater than n_agents")
 
 # Post-run data - for plotting
 @dataclass
@@ -260,7 +264,7 @@ def starting_ratio_sweep(
 def _ylim_from_values(values: np.ndarray) -> tuple[float, float]:
     finite = values[np.isfinite(values)]
     if finite.size == 0:
-        return 0.0, 2.0
+        return 0.0, 100.0
     ymin, ymax = float(finite.min()), float(finite.max())
     if ymin == ymax:
         ymin -= 0.1
