@@ -23,7 +23,7 @@ class SimulationConfig:
     n_agents: int = 100
     n_timesteps: int = 500
     seed: int = 42
-    beta: float = 1.0
+    beta: float = 1.0 # copy sensitivity to payoff differences
     food_decay: float = 2.0
     payoffs: dict[str, list[tuple[float, float]]] = field(
         default_factory=lambda: copy.deepcopy(DEFAULT_PAYOFFS)
@@ -33,7 +33,7 @@ class SimulationConfig:
     fixed_food: float | None = None
     n_risky: int | None = None
 
-# Post-run data
+# Post-run data - for plotting
 @dataclass
 class SimulationResult:
     risky_pct_trajectory: np.ndarray
@@ -62,12 +62,13 @@ class SweepResult:
     n_runs_per_ratio: int
 
 
-# Controls agent state; returns nothing
+# Controls agent behavior
 class Agent:
     def __init__(self, strategy: Strategy, food: float = 0.0) -> None:
         self.strategy = strategy
         self.food = food
 
+    # compute and add payoffs/decay to current food
     def forage(self, rng: np.random.Generator, payoffs: dict[str, list[tuple[float, float]]]) -> None:
         outcomes = payoffs[self.strategy]
         probs = [p for p, _ in outcomes]
@@ -78,6 +79,7 @@ class Agent:
     def apply_decay(self, decay_amount: float) -> None:
         self.food = max(0.0, self.food - decay_amount)
 
+    # computes copy probability; does not directly update strategy
     def copy_probability(
         self,
         neighbor: Agent,
@@ -96,6 +98,7 @@ class Agent:
         return 1.0 / (1.0 + np.exp(-beta * delta))
 
 
+# Controls simulation behavior
 class ForagingABM:
     def __init__(self, agents: list[Agent], config: SimulationConfig) -> None:
         self.agents = agents
@@ -120,6 +123,7 @@ class ForagingABM:
             for agent in self.agents:
                 agent.apply_decay(cfg.food_decay)
 
+        # updates all agent strategies at once
         new_strategies: list[Strategy] = []
         for i, agent in enumerate(self.agents):
             left = self.neighbor_left(i)
@@ -135,6 +139,7 @@ class ForagingABM:
         for agent, strategy in zip(self.agents, new_strategies):
             agent.strategy = strategy
 
+    # appends % risky at each new timestep to track trajectory
     def run(self, rng: np.random.Generator) -> np.ndarray:
         trajectory = [risky_pct(self.agents)]
         for _ in range(self.config.n_timesteps):
@@ -146,7 +151,7 @@ class ForagingABM:
 def risky_pct(agents: list[Agent]) -> float:
     """Percentage of agents with the risky strategy."""
     if not agents:
-        return 0.0
+        raise ValueError("No agents in system")
     n_risky = sum(1 for a in agents if a.strategy == "risky")
     return 100.0 * n_risky / len(agents)
 
@@ -222,6 +227,7 @@ def average_ratio_trajectory(config: SimulationConfig, n_runs: int = 30) -> Traj
     )
 
 
+# Sensitivity analysis to determine robustness against starting composition
 def starting_ratio_sweep(
     config: SimulationConfig,
     start_risky_pct: np.ndarray,
