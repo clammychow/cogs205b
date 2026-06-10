@@ -40,6 +40,9 @@ class SimulationConfig:
             raise ValueError("n_timesteps must be positive")
         if self.beta < 0:
             raise ValueError("beta cannot be negative")
+        if self.n_risky is not None:
+            if self.n_risky > n_agents:
+                raise  ValueError("n_risky cannot be greater than n_agents")
 
 # Post-run data - for plotting
 @dataclass
@@ -175,8 +178,6 @@ def init_agents(config: SimulationConfig, rng: np.random.Generator) -> list[Agen
         n_risky = config.n_risky
     else:
         n_risky = config.n_agents // 2
-
-    n_risky = max(0, min(config.n_agents, n_risky))
     strategies: list[Strategy] = ["risky"] * n_risky + ["safe"] * (config.n_agents - n_risky)
     rng.shuffle(strategies)
     return [Agent(strategy=s) for s in strategies]
