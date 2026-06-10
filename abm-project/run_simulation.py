@@ -33,6 +33,14 @@ class SimulationConfig:
     fixed_food: float | None = None
     n_risky: int | None = None
 
+    def __post_init__(self):
+        if self.n_agents < 3:
+            raise ValueError("n_agents must be >= 3")
+        if self.n_timesteps <= 0:
+            raise ValueError("n_timesteps must be positive")
+        if self.beta < 0:
+            raise ValueError("beta cannot be negative")
+
 # Post-run data - for plotting
 @dataclass
 class SimulationResult:
@@ -93,6 +101,7 @@ class Agent:
             return 0.0
         if copy_override is not None:
             return copy_override
+        # no sensitivity -> probability becomes 0, not 0.5
         if beta == 0.0:
             return 0.0
         return 1.0 / (1.0 + np.exp(-beta * delta))
@@ -151,7 +160,7 @@ class ForagingABM:
 def risky_pct(agents: list[Agent]) -> float:
     """Percentage of agents with the risky strategy."""
     if not agents:
-        raise ValueError("No agents in system")
+        raise ValueError("No agents in ring")
     n_risky = sum(1 for a in agents if a.strategy == "risky")
     return 100.0 * n_risky / len(agents)
 
