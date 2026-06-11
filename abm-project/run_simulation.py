@@ -28,7 +28,7 @@ class SimulationConfig:
     payoffs: dict[str, list[tuple[float, float]]] = field(
         default_factory=lambda: copy.deepcopy(DEFAULT_PAYOFFS)
     )
-    # None allows overrides for invariance verification tests
+    # allows overrides for invariance verification tests
     copy_probability: float | None = None
     fixed_food: float | None = None
     n_risky: int | None = None
@@ -40,7 +40,7 @@ class SimulationConfig:
             raise ValueError("n_timesteps must be positive")
         if self.beta < 0:
             raise ValueError("beta cannot be negative")
-        if copy_probability not in [None, 0, 1]:
+        if self.copy_probability not in [None, 0, 1]:
             raise ValueError("fixed copy_probability must be within [0, 1]")
         if self.n_risky is not None:
             if self.n_risky < 0:
@@ -172,12 +172,14 @@ def risky_pct(agents: list[Agent]) -> float:
     return 100.0 * n_risky / len(agents)
 
 
+# Used to configure sweep runs - does not include homogenous starts (0 or all risky)
 def n_risky_from_start_pct(start_pct: float, n_agents: int) -> int:
     """Convert initial % risky agents to a risky agent count."""
-    return max(1, min(n_agents - 1, round(start_pct / 100.0 * n_agents)))
+    return round(start_pct / 100.0 * n_agents)
 
 
 def init_agents(config: SimulationConfig, rng: np.random.Generator) -> list[Agent]:
+    # if no n_risky override, 50/50 start by default
     if config.n_risky is not None:
         n_risky = config.n_risky
     else:
@@ -203,6 +205,7 @@ def run_simulation(config: SimulationConfig) -> SimulationResult:
     )
 
 
+# Runs and averages over multiple simulations with same config
 def average_ratio_trajectory(config: SimulationConfig, n_runs: int = 30) -> TrajectoryBatchResult:
     trajectories = []
     final_ratios = []
@@ -210,7 +213,6 @@ def average_ratio_trajectory(config: SimulationConfig, n_runs: int = 30) -> Traj
     final_safe = []
     for i in range(n_runs):
         run_config = copy.deepcopy(config)
-        run_config.n_risky = config.n_agents // 2
         run_config.seed = config.seed + i
         result = run_simulation(run_config)
         trajectories.append(result.risky_pct_trajectory)
@@ -241,6 +243,7 @@ def starting_ratio_sweep(
     mean_final = np.zeros(len(start_risky_pct))
     std_final = np.zeros(len(start_risky_pct))
 
+    # for each starting composition, runs n simulations
     for idx, pct in enumerate(start_risky_pct):
         finals = []
         for run_i in range(n_runs_per_ratio):
@@ -259,17 +262,6 @@ def starting_ratio_sweep(
         std_final_risky_pct=std_final,
         n_runs_per_ratio=n_runs_per_ratio,
     )
-
-
-def _ylim_from_values(values: np.ndarray) -> tuple[float, float]:
-    finite = values[np.isfinite(values)]
-    if finite.size == 0:
-        return 0.0, 100.0
-    ymin, ymax = float(finite.min()), float(finite.max())
-    if ymin == ymax:
-        ymin -= 0.1
-        ymax += 0.1
-    return ymin, ymax
 
 
 def save_diagnostic_figures(
@@ -327,10 +319,8 @@ def save_diagnostic_figures(
     y = sweep_result.mean_final_risky_pct
     yerr = sweep_result.std_final_risky_pct
     ax.errorbar(x, y, yerr=yerr, fmt="o-", capsize=3)
-    ymin, ymax = _ylim_from_values(y)
-    margin = max(1.0, (ymax - ymin) * 0.1)
     ax.set_xlim(0, 100)
-    ax.set_ylim(max(0.0, ymin - margin), min(100.0, ymax + margin))
+    ax.set_ylim(0, 100)
     ax.set_xlabel("Initial % risky agents")
     ax.set_ylabel("Mean final % risky agents")
     ax.set_title("Starting composition sweep")
@@ -348,7 +338,7 @@ def main() -> None:
     trajectory_batch = average_ratio_trajectory(config, n_runs=30)
     sweep_result = starting_ratio_sweep(
         config,
-        start_risky_pct=np.linspace(10, 90, 20),
+        start_risky_pct=np.linspace(0, 100, 21),
         n_runs_per_ratio=30,
     )
     paths = save_diagnostic_figures(trajectory_batch, sweep_result, "results")
