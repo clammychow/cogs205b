@@ -74,7 +74,7 @@ class SweepResult:
     start_risky_pct: np.ndarray
     mean_final_risky_pct: np.ndarray
     std_final_risky_pct: np.ndarray
-    n_runs_per_ratio: int
+    n_runs_per_starting_pct: int
 
 
 # Controls agent behavior
@@ -83,7 +83,7 @@ class Agent:
         self.strategy = strategy
         self.food = food
 
-    # compute and add payoffs/decay to current food
+    # update current food
     def forage(self, rng: np.random.Generator, payoffs: dict[str, list[tuple[float, float]]]) -> None:
         outcomes = payoffs[self.strategy]
         probs = [p for p, _ in outcomes]
@@ -94,7 +94,7 @@ class Agent:
     def apply_decay(self, decay_amount: float) -> None:
         self.food = max(0.0, self.food - decay_amount)
 
-    # computes copy probability; does not directly update strategy
+    # does not directly update strategy
     def copy_probability(
         self,
         neighbor: Agent,
@@ -155,7 +155,7 @@ class ForagingABM:
         for agent, strategy in zip(self.agents, new_strategies):
             agent.strategy = strategy
 
-    # appends % risky at each new timestep to track run trajectory
+    # updates trajectory of risky proportion at each timestep
     def run(self, rng: np.random.Generator) -> np.ndarray:
         trajectory = [risky_pct(self.agents)]
         for _ in range(self.config.n_timesteps):
@@ -172,7 +172,7 @@ def risky_pct(agents: list[Agent]) -> float:
     return 100.0 * n_risky / len(agents)
 
 
-# Used to configure sweep runs - does not include homogenous starts (0 or all risky)
+# Used to configure composition sweep runs w/ given starting risky proportions
 def n_risky_from_start_pct(start_pct: float, n_agents: int) -> int:
     """Convert initial % risky agents to a risky agent count."""
     return round(start_pct / 100.0 * n_agents)
@@ -205,10 +205,9 @@ def run_simulation(config: SimulationConfig) -> SimulationResult:
     )
 
 
-# Runs and averages over multiple simulations with same config
-def average_ratio_trajectory(config: SimulationConfig, n_runs: int = 30) -> TrajectoryBatchResult:
+def average_risky_pct_trajectory(config: SimulationConfig, n_runs: int = 30) -> TrajectoryBatchResult:
     trajectories = []
-    final_ratios = []
+    final_pcts = []
     final_risky = []
     final_safe = []
     for i in range(n_runs):
@@ -216,12 +215,12 @@ def average_ratio_trajectory(config: SimulationConfig, n_runs: int = 30) -> Traj
         run_config.seed = config.seed + i
         result = run_simulation(run_config)
         trajectories.append(result.risky_pct_trajectory)
-        final_ratios.append(result.final_risky_pct)
+        final_pcts.append(result.final_risky_pct)
         final_risky.append(result.n_risky_final)
         final_safe.append(result.n_safe_final)
 
     stacked = np.stack(trajectories, axis=0)
-    final_arr = np.array(final_ratios, dtype=float)
+    final_arr = np.array(final_pcts, dtype=float)
     return TrajectoryBatchResult(
         mean_trajectory=stacked.mean(axis=0),
         std_trajectory=stacked.std(axis=0),
@@ -233,20 +232,21 @@ def average_ratio_trajectory(config: SimulationConfig, n_runs: int = 30) -> Traj
     )
 
 
-# Sensitivity analysis to determine robustness against starting composition
-def starting_ratio_sweep(
+# Sensitivity analysis for robustness against different starting compositions
+# + Verification for homogenous starts
+def starting_risky_pct_sweep(
     config: SimulationConfig,
     start_risky_pct: np.ndarray,
-    n_runs_per_ratio: int = 30,
+    n_runs_per_starting_pct: int = 30,
 ) -> SweepResult:
     start_risky_pct = np.asarray(start_risky_pct, dtype=float)
     mean_final = np.zeros(len(start_risky_pct))
     std_final = np.zeros(len(start_risky_pct))
 
-    # for each starting composition, runs n simulations
+    # for each starting risky proportion, runs n simulations
     for idx, pct in enumerate(start_risky_pct):
         finals = []
-        for run_i in range(n_runs_per_ratio):
+        for run_i in range(n_runs_per_starting_pct):
             run_config = copy.deepcopy(config)
             run_config.n_risky = n_risky_from_start_pct(float(pct), config.n_agents)
             run_config.seed = config.seed + idx * 1000 + run_i
@@ -260,7 +260,7 @@ def starting_ratio_sweep(
         start_risky_pct=start_risky_pct,
         mean_final_risky_pct=mean_final,
         std_final_risky_pct=std_final,
-        n_runs_per_ratio=n_runs_per_ratio,
+        n_runs_per_starting_pct=n_runs_per_starting_pct,
     )
 
 
@@ -280,7 +280,7 @@ def save_diagnostic_figures(
     paths: list[Path] = []
     timesteps = np.arange(len(trajectory_batch.mean_trajectory))
 
-    # ratio_trajectory.png
+    # risky_prevalence_trajectory.png
     fig, ax = plt.subplots(figsize=(8, 5))
     mean = trajectory_batch.mean_trajectory
     std = trajectory_batch.std_trajectory
@@ -292,12 +292,12 @@ def save_diagnostic_figures(
     ax.set_title("Average risky-agent trajectory (50/50 start)")
     ax.legend()
     fig.tight_layout()
-    p1 = out / "ratio_trajectory.png"
+    p1 = out / "risky_prevalence_trajectory.png"
     fig.savefig(p1)
     plt.close(fig)
     paths.append(p1)
 
-    # final_ratio.png
+    # final_average_composition.png
     fig, ax = plt.subplots(figsize=(6, 5))
     mean_pct = trajectory_batch.mean_final_risky_pct
     ax.bar(
@@ -308,12 +308,12 @@ def save_diagnostic_figures(
     ax.set_ylabel("Mean agent count")
     ax.set_title(f"Final composition (mean risky = {mean_pct:.1f}%)")
     fig.tight_layout()
-    p2 = out / "final_ratio.png"
+    p2 = out / "final_average_composition.png"
     fig.savefig(p2)
     plt.close(fig)
     paths.append(p2)
 
-    # starting_ratio_sweep.png
+    # starting_composition_sweep.png
     fig, ax = plt.subplots(figsize=(8, 5))
     x = sweep_result.start_risky_pct
     y = sweep_result.mean_final_risky_pct
@@ -325,7 +325,7 @@ def save_diagnostic_figures(
     ax.set_ylabel("Mean final % risky agents")
     ax.set_title("Starting composition sweep")
     fig.tight_layout()
-    p3 = out / "starting_ratio_sweep.png"
+    p3 = out / "starting_composition_sweep.png"
     fig.savefig(p3)
     plt.close(fig)
     paths.append(p3)
@@ -335,11 +335,11 @@ def save_diagnostic_figures(
 
 def main() -> None:
     config = SimulationConfig()
-    trajectory_batch = average_ratio_trajectory(config, n_runs=30)
-    sweep_result = starting_ratio_sweep(
+    trajectory_batch = average_risky_pct_trajectory(config, n_runs=30)
+    sweep_result = starting_risky_pct_sweep(
         config,
         start_risky_pct=np.linspace(0, 100, 21),
-        n_runs_per_ratio=30,
+        n_runs_per_starting_pct=30,
     )
     paths = save_diagnostic_figures(trajectory_batch, sweep_result, "results")
     for path in paths:
