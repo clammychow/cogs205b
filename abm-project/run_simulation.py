@@ -86,7 +86,6 @@ class Agent:
         self.strategy = strategy
         self.food = food
 
-    # update current food
     def forage(self, rng: np.random.Generator, payoffs: dict[str, list[tuple[float, float]]]) -> None:
         outcomes = payoffs[self.strategy]
         probs = [p for p, _ in outcomes]
@@ -111,7 +110,6 @@ class Agent:
             return 0.0
         if copy_override is not None:
             return copy_override
-        # no sensitivity -> probability becomes 0, not 0.5
         if beta == 0.0:
             return 0.0
         return 1.0 / (1.0 + np.exp(-beta * delta))
@@ -142,7 +140,7 @@ class ForagingABM:
             for agent in self.agents:
                 agent.apply_decay(cfg.food_decay)
 
-        # updates all agent strategies at once
+        # all agent strategies updated at once
         new_strategies: list[Strategy] = []
         for i, agent in enumerate(self.agents):
             left = self.neighbor_left(i)
@@ -246,7 +244,6 @@ def starting_risky_pct_sweep(
     mean_final = np.zeros(len(start_risky_pct))
     std_final = np.zeros(len(start_risky_pct))
 
-    # for each starting risky proportion, runs n simulations
     for idx, pct in enumerate(start_risky_pct):
         finals = []
         for run_i in range(n_runs_per_starting_pct):
