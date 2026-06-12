@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import Literal
 
 import numpy as np
-np.seterr(all="raise")
 
 Strategy = Literal["risky", "safe"]
 
@@ -40,13 +39,17 @@ class SimulationConfig:
             raise ValueError("n_timesteps must be positive")
         if self.beta < 0:
             raise ValueError("beta cannot be negative")
-        if self.copy_probability not in [None, 0, 1]:
-            raise ValueError("fixed copy_probability must be within [0, 1]")
+        if self.copy_probability is not None and not (0 <= self.copy_probability <= 1):
+            raise ValueError("copy_probability must be None or in [0, 1]")
         if self.n_risky is not None:
             if self.n_risky < 0:
                 raise ValueError("n_risky cannot be negative")
             if self.n_risky > self.n_agents:
                 raise ValueError("n_risky cannot be greater than n_agents")
+        for strategy, outcomes in self.payoffs.items():
+            prob_sum = sum(p for p, _ in outcomes)
+            if not np.isclose(prob_sum, 1):
+                raise ValueError("Payoff probabilities must sum to 1")
 
 # Post-run data - for plotting
 @dataclass
