@@ -1,6 +1,6 @@
 # Foraging Strategy ABM
 ## Model Specification
-The system features 100 agents in a ring system. Every timestep, agents gain or lose food depending on their current foraging strategy (risky or safe). Agents have a chance of copying a neighbor with an opposite strategy if the neighbor is more successul. This model runs and averages 30 simulations across 500 timesteps (~8 minutes to complete - can be reduced by decreasing `n_runs` and `n_runs_per_starting_pct` at the cost of increased noise).
+The system features 100 agents in a ring structure. Every timestep, agents gain or lose food depending on their current foraging strategy (risky or safe). Agents have a chance of copying a neighbor with an opposite strategy if the neighbor is more successul. This model runs and averages 30 simulations across 500 timesteps (~8 minutes to complete - can be reduced by decreasing `n_runs` and `n_runs_per_starting_pct` at the cost of increased noise).
 
 Main simulations use a 50/50 risky vs. safe agent starting composition. The model also conducts a sweep of different starting compositions.
 
