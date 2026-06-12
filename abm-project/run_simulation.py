@@ -27,7 +27,7 @@ class SimulationConfig:
     payoffs: dict[str, list[tuple[float, float]]] = field(
         default_factory=lambda: copy.deepcopy(DEFAULT_PAYOFFS)
     )
-    # allows overrides for invariance verification tests
+    # allows overrides for verification tests
     copy_probability: float | None = None
     fixed_food: float | None = None
     n_risky: int | None = None

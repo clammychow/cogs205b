@@ -49,7 +49,7 @@ class TestRunSimulation(unittest.TestCase):
             payoffs={"risky": [(1.0, 4)], "safe": [(1.0, 4)]},
         )
     
-    # Edge case / robustness verification
+    # Simulation-specific verification checks
     def test_no_imitation(self):
         abm_no_imitation = copy.deepcopy(self.abm_mini)
         abm_no_imitation.copy_probability = 0
