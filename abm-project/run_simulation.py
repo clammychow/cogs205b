@@ -50,6 +50,9 @@ class SimulationConfig:
             prob_sum = sum(p for p, _ in outcomes)
             if not np.isclose(prob_sum, 1):
                 raise ValueError("Payoff probabilities must sum to 1")
+            for p, _ in outcomes:
+                if p < 0:
+                    raise ValueError("Payoff probabilities cannot be negative")
 
 # Post-run data - for plotting
 @dataclass

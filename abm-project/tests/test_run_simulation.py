@@ -116,6 +116,8 @@ class TestRunSimulation(unittest.TestCase):
             SimulationConfig(n_risky = -1)
         with self.assertRaises(ValueError):
             SimulationConfig(payoffs = {"risky": [(1, 4), (0.5, 0)], "safe": [(1, 4)]})
+        with self.assertRaises(ValueError):
+            SimulationConfig(payoffs = {"risky": [(-1, 4), (1, 0)], "safe": [(1, 4)]})
 
     def test_food_floor(self):
         config = copy.deepcopy(self.abm_negative_food_payoffs)
